@@ -3,9 +3,6 @@ services:
     image: mcr.microsoft.com/devcontainers/typescript-node:22-bookworm
     volumes:
       - ..:/workspaces/ai-asset-library:cached
-      # node_modulesはホストと共有しない（OSの違いによるバイナリの不一致を防ぐ）
-      - app-node-modules:/workspaces/ai-asset-library/app/node_modules
-      - e2e-node-modules:/workspaces/ai-asset-library/e2e/node_modules
     command: sleep infinity
     depends_on:
       db:
@@ -35,7 +32,5 @@ services:
       - azurite-data:/data
 
 volumes:
-  app-node-modules:
-  e2e-node-modules:
   postgres-data:
   azurite-data:

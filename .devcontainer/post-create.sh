@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ボリュームの所有者をnodeユーザーにそろえる
-sudo chown node:node app/node_modules e2e/node_modules
-
 (cd app && npm ci)
 (cd e2e && npm ci && npx playwright install --with-deps chromium)
 

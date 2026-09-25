@@ -1,0 +1,48 @@
+{
+  "name": "ai-asset-library",
+  "dockerComposeFile": "compose.yaml",
+  "service": "workspace",
+  "workspaceFolder": "/workspaces/ai-asset-library",
+  "shutdownAction": "stopCompose",
+
+  "features": {
+    // Testcontainersとシナリオテストのために、コンテナ内でDockerを使えるようにする
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/terraform:1": {
+      "version": "1.16.4",
+      "tflint": "latest"
+    }
+  },
+
+  "containerEnv": {
+    // 開発用（npm run dev:server）
+    "DATABASE_URL": "postgres://app:app@db:5432/app",
+    "AZURE_STORAGE_CONNECTION_STRING": "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://blob:10000/devstoreaccount1;",
+    "WEB_ROOT": "",
+    // 結合テストは起動済みのDB（テスト専用DB）とAzuriteを使い、コンテナを立ち上げない
+    "TEST_DATABASE_URL": "postgres://app:app@db:5432/app_test",
+    "TEST_BLOB_CONNECTION_STRING": "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://blob:10000/devstoreaccount1;"
+  },
+
+  "forwardPorts": [3000, 5173],
+  "portsAttributes": {
+    "3000": { "label": "API（Hono）" },
+    "5173": { "label": "画面（Vite）", "onAutoForward": "openBrowser" }
+  },
+
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-playwright.playwright",
+        "vitest.explorer",
+        "hashicorp.terraform",
+        "ms-azuretools.vscode-containers",
+        "github.vscode-github-actions"
+      ]
+    }
+  },
+
+  "remoteUser": "node"
+}

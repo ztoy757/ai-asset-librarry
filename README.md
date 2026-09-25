@@ -25,7 +25,20 @@ infra/local/  ローカルのDockerに構築するTerraform
 
 層の依存ルールは `app/.dependency-cruiser.cjs` で定義し、CIで検証する。
 
-## ローカルで動かす
+## DevContainerで動かす（おすすめ）
+
+VS Codeで「Dev Containers: Reopen in Container」を実行すると、Node.js・Terraform・tflint・Docker・PlaywrightのChromiumが入った環境と、PostgreSQL・Azuriteが起動する。
+
+```sh
+cd app
+npm run dev:server   # API    http://localhost:3000
+npm run dev:web      # 画面   http://localhost:5173
+```
+
+- 結合テスト（`npm run test:integration`）は、起動済みのPostgreSQL（テスト専用DB `app_test`）とAzuriteを使うので、コンテナを立ち上げずにすぐ終わる
+- シナリオテストは `cd e2e && npx playwright test`（コンテナ内のDockerでアプリを起動）か、開発サーバーに対して `E2E_BASE_URL=http://localhost:5173 npx playwright test`
+
+## ローカルで動かす（Terraform）
 
 ```sh
 # DB・ストレージ・アプリをDockerで起動（Terraform）

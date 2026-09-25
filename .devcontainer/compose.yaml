@@ -1,0 +1,41 @@
+services:
+  workspace:
+    image: mcr.microsoft.com/devcontainers/typescript-node:22-bookworm
+    volumes:
+      - ..:/workspaces/ai-asset-library:cached
+      # node_modulesはホストと共有しない（OSの違いによるバイナリの不一致を防ぐ）
+      - app-node-modules:/workspaces/ai-asset-library/app/node_modules
+      - e2e-node-modules:/workspaces/ai-asset-library/e2e/node_modules
+    command: sleep infinity
+    depends_on:
+      db:
+        condition: service_healthy
+      blob:
+        condition: service_started
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d app"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  blob:
+    image: mcr.microsoft.com/azure-storage/azurite:3.37.0
+    command: ["azurite-blob", "--blobHost", "0.0.0.0", "--location", "/data", "--skipApiVersionCheck"]
+    volumes:
+      - azurite-data:/data
+
+volumes:
+  app-node-modules:
+  e2e-node-modules:
+  postgres-data:
+  azurite-data:

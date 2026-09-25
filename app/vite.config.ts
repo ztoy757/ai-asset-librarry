@@ -6,15 +6,17 @@ export default defineConfig({
   plugins: [react()],
   build: { outDir: "../../dist/web", emptyOutDir: true },
   server: {
-    host: "0.0.0.0",
+    // IPv4とIPv6の両方で待ち受ける（Codespacesのポート転送がどちらで接続しても届くように）
+    host: true,
     port: 5173,
+    strictPort: true,
     proxy: { "/api": "http://localhost:3000" },
     // GitHub Codespacesのポート転送（*.app.github.dev）経由のアクセスを許可する。
     // Viteは既定でlocalhost以外のHostヘッダーを拒否するため
     allowedHosts: [".app.github.dev"],
   },
   preview: {
-    host: "0.0.0.0",
+    host: true,
     port: 4173,
   },
 });

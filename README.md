@@ -19,6 +19,7 @@ app/          Hono（サーバー）+ React / Vite（画面）
   test/unit/         単体テスト（Vitest）
   test/integration/  結合テスト（Testcontainers：PostgreSQL、Azurite）
 e2e/          シナリオテスト（Playwright + Testcontainers）
+portal/       利用者ポータル（Astro Starlight、GitHub Pagesで公開）
 infra/azure/  Azure構成（静的チェックとモックのテストのみ。デプロイはしない）
 infra/local/  ローカルのDockerに構築するTerraform
 ```

@@ -2,7 +2,7 @@ version: 2
 
 updates:
   - package-ecosystem: npm
-    directories: ["/app", "/e2e"]
+    directories: ["/app", "/e2e", "/portal"]
     schedule:
       interval: weekly
     # 公開直後のバージョンは避ける（乗っ取られたパッケージが公開後すぐに見つかることが多いため）

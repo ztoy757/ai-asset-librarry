@@ -1,12 +1,12 @@
 # syntax=docker/dockerfile:1
-FROM node:22-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json .npmrc ./
 RUN npm ci
 COPY . .
 RUN npm run build && npm prune --omit=dev
 
-FROM node:22-alpine
+FROM node:26-alpine
 # OSパッケージを最新の修正版にし、実行時に不要なnpm・yarn・corepackを取り除く
 # （ベースイメージに同梱されたnpmの依存に脆弱性が見つかることが多いため）
 RUN apk upgrade --no-cache \

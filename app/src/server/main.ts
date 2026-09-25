@@ -4,6 +4,7 @@
  */
 import { serve } from "@hono/node-server";
 import pg from "pg";
+import { pathToFileURL } from "node:url";
 import { AssetService } from "./application/asset-service.js";
 import { AzureBlobStorage } from "./infrastructure/azure-blob-storage.js";
 import { migrate } from "./infrastructure/migrate.js";
@@ -11,33 +12,46 @@ import { PgAssetRepository } from "./infrastructure/pg-asset-repository.js";
 import { systemClock, uuidGenerator } from "./infrastructure/system.js";
 import { createApp } from "./presentation/app.js";
 
-function required(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`環境変数 ${name} が設定されていません`);
-  }
-  return value;
+export function resolveRuntimeConfig(env: NodeJS.ProcessEnv = process.env) {
+  return {
+    databaseUrl: env.DATABASE_URL ?? "postgres://app:app@db:5432/app",
+    blobConnectionString:
+      env.AZURE_STORAGE_CONNECTION_STRING ??
+      "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://blob:10000/devstoreaccount1;",
+    blobContainer: env.BLOB_CONTAINER ?? "assets",
+    port: Number(env.PORT ?? 3000),
+  };
 }
 
-const pool = new pg.Pool({ connectionString: required("DATABASE_URL") });
-await migrate(pool, process.env.MIGRATIONS_DIR ?? "./db/migrations");
+export async function startServer(env: NodeJS.ProcessEnv = process.env) {
+  const config = resolveRuntimeConfig(env);
+  const pool = new pg.Pool({ connectionString: config.databaseUrl });
+  await migrate(pool, env.MIGRATIONS_DIR ?? "./db/migrations");
 
-const storage = await AzureBlobStorage.connect(
-  required("AZURE_STORAGE_CONNECTION_STRING"),
-  process.env.BLOB_CONTAINER ?? "assets",
-);
+  const storage = await AzureBlobStorage.connect(config.blobConnectionString, config.blobContainer);
 
-const service = new AssetService(new PgAssetRepository(pool), storage, systemClock, uuidGenerator);
-const app = createApp(service, { webRoot: process.env.WEB_ROOT ?? "./dist/web" });
+  const service = new AssetService(new PgAssetRepository(pool), storage, systemClock, uuidGenerator);
+  const app = createApp(service, { webRoot: env.WEB_ROOT ?? "./dist/web" });
 
-const port = Number(process.env.PORT ?? 3000);
-const server = serve({ fetch: app.fetch, port }, () => {
-  console.log(`listening on http://localhost:${port}`);
-});
-
-for (const signal of ["SIGINT", "SIGTERM"] as const) {
-  process.on(signal, () => {
-    server.close();
-    void pool.end();
+  const port = config.port;
+  const server = serve({ fetch: app.fetch, port }, () => {
+    console.log(`listening on http://localhost:${port}`);
   });
+
+  for (const signal of ["SIGINT", "SIGTERM"] as const) {
+    process.on(signal, () => {
+      server.close();
+      void pool.end();
+    });
+  }
+
+  return { app, server, pool };
+}
+
+const isDirectExecution =
+  typeof process.argv[1] === "string" &&
+  import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isDirectExecution) {
+  await startServer();
 }

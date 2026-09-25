@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { Hono } from "hono";
 import { AssetService } from "../../src/server/application/asset-service.js";
+import { resolveRuntimeConfig } from "../../src/server/main.js";
 import { createApi } from "../../src/server/presentation/api.js";
 import {
   fixedClock,
@@ -27,6 +28,16 @@ describe("API", () => {
         sequentialIds(),
       ),
     );
+  });
+
+  it("DevContainer のデフォルト接続先が使われる", () => {
+    expect(resolveRuntimeConfig({})).toEqual({
+      databaseUrl: "postgres://app:app@db:5432/app",
+      blobConnectionString:
+        "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://blob:10000/devstoreaccount1;",
+      blobContainer: "assets",
+      port: 3000,
+    });
   });
 
   it("POST /assets は201と登録内容を返し、一覧に出る", async () => {

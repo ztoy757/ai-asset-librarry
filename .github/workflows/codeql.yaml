@@ -4,6 +4,10 @@ on:
   pull_request:
   push:
     branches: [main]
+    paths-ignore:
+      - "portal/**"
+      - "docs/**"
+      - "**/*.md"
   schedule:
     # 新しく見つかった脆弱性パターンを既存コードにも当てるため、週1回も実行する
     - cron: "17 3 * * 1"

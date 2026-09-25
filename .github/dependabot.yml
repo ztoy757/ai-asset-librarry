@@ -1,0 +1,36 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directories: ["/app", "/e2e"]
+    schedule:
+      interval: weekly
+    # 公開直後のバージョンは避ける（乗っ取られたパッケージが公開後すぐに見つかることが多いため）
+    cooldown:
+      default-days: 3
+      semver-major-days: 7
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: docker
+    directory: /app
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
+
+  - package-ecosystem: terraform
+    directories: ["/infra/azure", "/infra/local"]
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3

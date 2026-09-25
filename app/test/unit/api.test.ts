@@ -40,6 +40,23 @@ describe("API", () => {
     });
   });
 
+  it("本番（NODE_ENV=production）で接続先が未設定なら、既定値を使わずにエラーにする", () => {
+    expect(() => resolveRuntimeConfig({ NODE_ENV: "production" })).toThrow("DATABASE_URL");
+    expect(() =>
+      resolveRuntimeConfig({ NODE_ENV: "production", DATABASE_URL: "postgres://prod" }),
+    ).toThrow("AZURE_STORAGE_CONNECTION_STRING");
+  });
+
+  it("本番でも、接続先が設定されていればその値を使う", () => {
+    const config = resolveRuntimeConfig({
+      NODE_ENV: "production",
+      DATABASE_URL: "postgres://prod",
+      AZURE_STORAGE_CONNECTION_STRING: "BlobEndpoint=https://prod",
+    });
+    expect(config.databaseUrl).toBe("postgres://prod");
+    expect(config.blobConnectionString).toBe("BlobEndpoint=https://prod");
+  });
+
   it("POST /assets は201と登録内容を返し、一覧に出る", async () => {
     const res = await upload(api, new File([new Uint8Array([1, 2])], "cat.png", { type: "image/png" }));
     expect(res.status).toBe(201);

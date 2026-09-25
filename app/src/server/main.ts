@@ -12,12 +12,36 @@ import { PgAssetRepository } from "./infrastructure/pg-asset-repository.js";
 import { systemClock, uuidGenerator } from "./infrastructure/system.js";
 import { createApp } from "./presentation/app.js";
 
+/**
+ * 開発環境（DevContainer / Codespaces）用の既定の接続先。
+ * AzuriteのキーはMicrosoftが公開している開発用の固定値で、本番では絶対に使わない。
+ */
+const DEVELOPMENT_DEFAULTS = {
+  DATABASE_URL: "postgres://app:app@db:5432/app",
+  AZURE_STORAGE_CONNECTION_STRING:
+    "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://blob:10000/devstoreaccount1;",
+} as const;
+
+/**
+ * 接続先を環境変数から決める。
+ * NODE_ENV=production では既定値を使わず、設定漏れがあれば起動を止める。
+ * 設定し忘れた本番環境が、開発用の接続先や公開キーで動いてしまうのを防ぐため。
+ */
 export function resolveRuntimeConfig(env: NodeJS.ProcessEnv = process.env) {
+  const isProduction = env.NODE_ENV === "production";
+
+  const read = (name: keyof typeof DEVELOPMENT_DEFAULTS): string => {
+    const value = env[name];
+    if (value) return value;
+    if (isProduction) {
+      throw new Error(`環境変数 ${name} が設定されていません（本番では既定値を使いません）`);
+    }
+    return DEVELOPMENT_DEFAULTS[name];
+  };
+
   return {
-    databaseUrl: env.DATABASE_URL ?? "postgres://app:app@db:5432/app",
-    blobConnectionString:
-      env.AZURE_STORAGE_CONNECTION_STRING ??
-      "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://blob:10000/devstoreaccount1;",
+    databaseUrl: read("DATABASE_URL"),
+    blobConnectionString: read("AZURE_STORAGE_CONNECTION_STRING"),
     blobContainer: env.BLOB_CONTAINER ?? "assets",
     port: Number(env.PORT ?? 3000),
   };

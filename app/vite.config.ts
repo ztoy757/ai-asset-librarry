@@ -10,7 +10,8 @@ export default defineConfig({
     host: true,
     port: 5173,
     strictPort: true,
-    proxy: { "/api": "http://localhost:3000" },
+    // 末尾のスラッシュが必要。"/api" だと画面側のファイル（/api-client.ts など）まで転送されてしまう
+    proxy: { "/api/": "http://localhost:3000" },
     // GitHub Codespacesのポート転送（*.app.github.dev）経由のアクセスを許可する。
     // Viteは既定でlocalhost以外のHostヘッダーを拒否するため
     allowedHosts: [".app.github.dev"],

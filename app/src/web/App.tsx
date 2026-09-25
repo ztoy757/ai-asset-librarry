@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { fetchAssets, uploadAsset, type AssetView } from "./api";
+import { fetchAssets, uploadAsset, type AssetView } from "./api-client";
 
 const KIND_LABEL = { image: "画像", audio: "音楽", video: "動画" } as const;
 

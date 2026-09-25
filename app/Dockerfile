@@ -7,6 +7,12 @@ COPY . .
 RUN npm run build && npm prune --omit=dev
 
 FROM node:22-alpine
+# OSパッケージを最新の修正版にし、実行時に不要なnpm・yarn・corepackを取り除く
+# （ベースイメージに同梱されたnpmの依存に脆弱性が見つかることが多いため）
+RUN apk upgrade --no-cache \
+ && rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
+    /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
+    /opt/yarn-* /usr/local/bin/yarn /usr/local/bin/yarnpkg
 ENV NODE_ENV=production PORT=3000 WEB_ROOT=./dist/web MIGRATIONS_DIR=./db/migrations
 WORKDIR /app
 COPY --from=build /app/package.json ./

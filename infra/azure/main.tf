@@ -3,6 +3,26 @@ resource "azurerm_resource_group" "this" {
   location = var.location
 }
 
+# ---------- ネットワーク ----------
+
+resource "azurerm_virtual_network" "this" {
+  name                = "vnet-${var.name}"
+  resource_group_name = azurerm_resource_group.this.name
+  location            = azurerm_resource_group.this.location
+  address_space       = ["10.20.0.0/16"]
+}
+
+# Container Appsの環境用（従量課金のみの環境は /23 以上が必要）
+resource "azurerm_subnet" "apps" {
+  name                 = "snet-apps"
+  resource_group_name  = azurerm_resource_group.this.name
+  virtual_network_name = azurerm_virtual_network.this.name
+  address_prefixes     = ["10.20.0.0/23"]
+
+  # サービスエンドポイント経由でStorageにつなぐ（プライベートエンドポイントと違い無料）
+  service_endpoints = ["Microsoft.Storage"]
+}
+
 # ---------- ファイル本体（Blob） ----------
 
 resource "azurerm_storage_account" "assets" {
@@ -17,6 +37,13 @@ resource "azurerm_storage_account" "assets" {
   min_tls_version                 = "TLS1_2"
   https_traffic_only_enabled      = true
   allow_nested_items_to_be_public = false
+
+  # 既定で拒否し、アプリのサブネットからだけ許可する
+  network_rules {
+    default_action             = "Deny"
+    bypass                     = ["AzureServices"]
+    virtual_network_subnet_ids = [azurerm_subnet.apps.id]
+  }
 
   blob_properties {
     versioning_enabled = true
@@ -71,9 +98,10 @@ resource "azurerm_postgresql_flexible_server_database" "app" {
 # ---------- アプリ（Container Apps） ----------
 
 resource "azurerm_container_app_environment" "this" {
-  name                = "cae-${var.name}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
+  name                     = "cae-${var.name}"
+  resource_group_name      = azurerm_resource_group.this.name
+  location                 = azurerm_resource_group.this.location
+  infrastructure_subnet_id = azurerm_subnet.apps.id
 }
 
 resource "azurerm_container_app" "app" {

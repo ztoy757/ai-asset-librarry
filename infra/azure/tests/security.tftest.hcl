@@ -16,6 +16,11 @@ run "storage_is_not_public" {
   }
 
   assert {
+    condition     = azurerm_storage_account.assets.network_rules[0].default_action == "Deny"
+    error_message = "Storageへのネットワークアクセスが既定で許可されています"
+  }
+
+  assert {
     condition     = azurerm_storage_account.assets.min_tls_version == "TLS1_2" && azurerm_storage_account.assets.https_traffic_only_enabled
     error_message = "TLS1.2未満やHTTPでの接続を許可しています"
   }

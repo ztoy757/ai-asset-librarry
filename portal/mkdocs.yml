@@ -1,0 +1,55 @@
+site_name: AI生成物ライブラリ
+site_description: AIで生成した画像・音楽・動画をまとめて保管・管理するアプリの利用ガイド
+site_url: https://ztoy757.github.io/ai-asset-library/
+repo_url: https://github.com/ztoy757/ai-asset-library
+edit_uri: edit/main/portal/docs/
+
+# リンク切れや存在しないページへの参照があればビルドを失敗させる
+strict: true
+
+theme:
+  name: material
+  language: ja
+  # Google Fontsを読み込まない（利用者の閲覧情報を外部に送らないため）
+  font: false
+  features:
+    - navigation.sections
+    - navigation.footer
+    - search.highlight
+    - content.action.edit
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      toggle:
+        icon: material/brightness-7
+        name: ダークモードに切り替え
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/brightness-4
+        name: ライトモードに切り替え
+
+plugins:
+  - search:
+      lang: ja
+
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - tables
+  - admonition
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+nav:
+  - ホーム: index.md
+  - はじめに: getting-started.md
+  - 使い方:
+      - 素材をアップロードする: guides/upload.md
+      - 素材を見る: guides/browse.md
+  - 対応ファイルと制限: reference/limits.md
+  - よくある質問: faq.md
+  - 更新履歴: changelog.md

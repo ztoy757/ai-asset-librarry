@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { fetchAssets, uploadAsset, type AssetView, type MediaKind } from "./api-client";
 
 type FilterKind = MediaKind | "all";
